@@ -69,6 +69,7 @@ class SymbolToken(Token):
     def __str__(self):
         return f'SymbolToken: {super().__str__()} {self.symbol}'
 
+
 class GearToken(SymbolToken):
     def __init__(self, start, stop, line):
         super().__init__('*', start, stop, line)
@@ -183,7 +184,7 @@ class Schematic():
                 if ((not token == other_token)
                    and (isinstance(other_token, NumberToken))
                    and (token.is_adjacent(other_token))):
-                    factors.append(token)
+                    factors.append(other_token.value)
             if len(factors) == 2:
                 token.ratio = factors[0] * factors [1]
 
