@@ -29,9 +29,9 @@ class Range():
             retval = True
         return retval
 
-    def overlaps(self, range):
+    def overlaps(self, other_range):
         retval = False
-        if (self.start < range.stop and range.start <= self.stop): 
+        if (self.start < other_range.stop and other_range.start < self.stop): 
             retval = True
         return retval
 
@@ -74,6 +74,7 @@ class RangeMapping():
         retval.append(f'source {self.source}')
         retval.append(f'destination {self.destination}')
         return '\n'.join(retval)
+
 
 class Map():
     def __init__(self, source, destination):
@@ -120,7 +121,6 @@ class Map():
                     break
         return retval
 
-
     def __str__(self):
         retval = []
         retval.append(f'{self.source} {self.destination}')
@@ -162,8 +162,8 @@ class Almanac():
                         self.seeds = []
                         seed_input = match.group(1).split(' ')
                         for j in range(int(len(seed_input)/2)):
-                            seed_range = Range(seed_input[j*2], 
-                                               seed_input[j*2 + 1])
+                            seed_range = Range(int(seed_input[j*2]), 
+                                               int(seed_input[j*2 + 1]))
                             self.seeds.append(seed_range)
 
                     # Parse the maps
@@ -196,7 +196,7 @@ class Almanac():
     def check_almanac(self):
         errors = 0
         for map in self._maps.values():
-            if map.has_range_overlaps(1):
+            if map.has_range_overlaps():
                 errors += 1
                 print (f'ERROR: map {map.source}_to_{map.destination} '
                        f'has overlapping ranges')
@@ -206,12 +206,6 @@ class Almanac():
     def print_map(self, map_name):
         print (f'{self._maps[map_name]}')
         
-    def print_soil_numbers(self):
-        map = self._maps['seed']
-        for seed in self.seeds:
-            print (f'- Seed number {seed} corrresponds '
-                   f'to soil number {map.get_mapping(seed)}')
-
     def traverse_maps(self):
         source_maps = self.create_list_of_source_maps()
         for source in source_maps:
@@ -229,22 +223,22 @@ class Almanac():
                 done = True
         return source_maps
     
-    # def resolve_mapping(self):
-    #     for seed in self.seeds:
-    #         done = False
-    #         source = 'seed'
-    #         value = seed
-    #         print(f'- Seed {seed}', end='')
-    #         while not done:
-    #             map = self._maps[source]
-    #             destination = map.destination
-    #             print(f', {destination} {map.get_mapping(value)}', end='')
-    #             value = map.get_mapping(value)
-    #             if destination in self._maps:
-    #                 source = destination
-    #             else:
-    #                 done = True
-    #         print('.')
+    def resolve_mapping(self):
+        for seed in self.seeds:
+            done = False
+            source = 'seed'
+            value = seed
+            print(f'- Seed {seed}', end='')
+            while not done:
+                map = self._maps[source]
+                destination = map.destination
+                print(f', {destination} {map.get_mapping(value)}', end='')
+                value = map.get_mapping(value)
+                if destination in self._maps:
+                    source = destination
+                else:
+                    done = True
+            print('.')
 
     # def find_location(self, seed):
     #     source = 'seed'
@@ -278,8 +272,9 @@ class Almanac():
     #     return min(values)
 
     def print_seeds(self):
+        print('Seed Ranges')
         for j in range(len(self.seeds)):
-            print(f'{self.seeds[j]} + range({self.ranges[j]})')
+            print(f'{self.seeds[j]}')
 
     # def check_seed_overlap(self):
     #     seed = self.seeds[1]
@@ -326,9 +321,8 @@ def main():
     if args.debug:
         almanac.print_map('seed')
         # almanac.print_seeds()
-        # almanac.print_soil_numbers()
         # almanac.traverse_maps()
-        #  almanac.resolve_mapping()
+        # almanac.resolve_mapping()
     #almanac.find_min_location()
  
 if __name__ == '__main__':
