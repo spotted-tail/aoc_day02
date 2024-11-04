@@ -3,7 +3,7 @@ Define a Map class
 
 This will have the source name, destination and the list of mappings
 """
-from libs import RangeMapping
+from libs import range_mapping
 
 class Map():
     """

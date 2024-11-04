@@ -1,35 +1,66 @@
+"""
+Script to solve AOX 2023/Day 5/part 2
+"""
 import sys
 import re
 import argparse
-from libs import Range
-from libs import Map
+from libs import range
+from libs import map
 
 
 class Almanac():
+    """
+    A class to define the puzzle Almanca
+    """
     def __init__(self):
         self.seeds = []
         self._maps = {}
 
-    @property 
-    def ranges(self):
-        return self._ranges
+    # @property
+    # def ranges(self):
+    #     """
+    #     retrun
+    #     Returns:
+    #         _type_: _description_
+    #     """
+    #     return self._ranges
 
-    @ranges.setter 
-    def ranges(self, ranges):
-        self._ranges = ranges
+    # @ranges.setter
+    # def ranges(self, ranges):
+    #     self._ranges = ranges
 
-    @property 
+    @property
     def seeds(self):
+        """
+        return the list of seed ranges
+
+        Returns:
+            list of ranges: the list of seeds in the range
+        """
         return self._seeds
 
-    @seeds.setter 
+    @seeds.setter
     def seeds(self, seeds):
+        """
+        Set the list of seed ranges
+
+        Args:
+            seeds (_type_): _description_
+        """
         self._seeds = seeds
 
     def read_almanac(self, filename, debug=0):
+        """
+        Read the puzzle input
+
+        Args:
+            filename (string): puzzle input filename
+            debug (int, optional): Set to 1 to get verbose output while reading.
+                                   Defaults to 0.
+        """
         have_map = 0
         try:
-            with open(filename, 'r') as fptr:
+            with open(filename, 'r', encoding='utf8') as fptr:
                 for line in fptr:
                     # Parse the seeds
                     match = re.search(r'^seeds:\s+(.+)$', line)
@@ -37,7 +68,7 @@ class Almanac():
                         self.seeds = []
                         seed_input = match.group(1).split(' ')
                         for j in range(int(len(seed_input)/2)):
-                            seed_range = Range.Range(int(seed_input[j*2]), 
+                            seed_range = range.Range(int(seed_input[j*2]),
                                                      int(seed_input[j*2 + 1]))
                             self.seeds.append(seed_range)
 
@@ -46,7 +77,7 @@ class Almanac():
                     if match:
                         source = match.group(1)
                         destination = match.group(2)
-                        map = Map.Map(source, destination)
+                        map = map.Map(source, destination)
                         self._maps[source] = map
                         have_map = 1
                         if debug:
@@ -59,8 +90,8 @@ class Almanac():
 
                         match = re.search(r'^(\d+)\s+(\d+)\s+(\d+)', line)
                         if match:
-                            map.add_mapping(int(match.group(1)), 
-                                            int(match.group(2)), 
+                            map.add_mapping(int(match.group(1)),
+                                            int(match.group(2)),
                                             int(match.group(3)))
 
         except IOError:
@@ -69,6 +100,9 @@ class Almanac():
         self.check_almanac()
 
     def check_almanac(self):
+        """
+        Perform a sanity check on the puzzle input
+        """
         errors = 0
         for map in self._maps.values():
             if map.has_range_overlaps():
@@ -76,11 +110,16 @@ class Almanac():
                 print (f'ERROR: map {map.source}_to_{map.destination} '
                        f'has overlapping ranges')
         if not errors:
-            print (f'Almanac passed consistency checking')
-          
+            print ('Almanac passed consistency checking')
+
     def print_map(self, map_name):
+        """
+        print the given map name
+        Args:
+            map_name (_type_): _description_
+        """
         print (f'{self._maps[map_name]}')
-        
+
     def traverse_maps(self):
         source_maps = self.create_list_of_source_maps()
         for source in source_maps:
@@ -97,7 +136,7 @@ class Almanac():
             else:
                 done = True
         return source_maps
-    
+
     def resolve_mapping(self):
         for seed in self.seeds:
             done = False
@@ -155,16 +194,19 @@ class Almanac():
     #     return min(values)
 
     def print_seeds(self):
+        """
+        Print the seed ranges
+        """
         print('Seed Ranges')
-        for j in range(len(self.seeds)):
-            print(f'{self.seeds[j]}')
+        for seed in enumerate(self.seeds):
+            print(f'{seed}')
 
     # def check_seed_overlap(self):
     #     seed = self.seeds[1]
     #     range = self.ranges[1]+50
     #     seed_map = self._maps['seed']
     #     is_contained = seed_map.soley_contained(seed, range)
-    #     if is_contained: 
+    #     if is_contained:
     #         print(f'{seed} {range} is completely contained in seed to soil map')
     #     else:
     #         print(f'{seed} {range} is completely NOT contained in seed to soil map')
@@ -184,20 +226,30 @@ class Almanac():
 
 
 def parse_commandline():
+    """
+    provide command line arguments
+
+    Returns:
+        Namespace: Command line args
+    """
     # Instantiate the parser
     parser = argparse.ArgumentParser(description='Optional app description')
 
     parser.add_argument('-p', '--puzzle', type=str,
                         help='Filename for the puzzle')
 
-    parser.add_argument('-d', '--debug', 
+    parser.add_argument('-d', '--debug',
                         action="store_true",
                         help='Turn on verbosity')
-    
+
     return parser.parse_args()
 
 
 def main():
+    """
+    main program to solve the day5 puzzle. Read the almanac and print the
+    answer
+    """
     almanac = Almanac()
     args = parse_commandline()
     almanac.read_almanac(args.puzzle)
@@ -208,7 +260,7 @@ def main():
         # almanac.resolve_mapping()
         almanac.trial_fracture(debug=0)
 
-    almanac.find_min_location()
- 
+    #almanac.find_min_location()
+
 if __name__ == '__main__':
     main()
