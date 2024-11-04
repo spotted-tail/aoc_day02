@@ -1,133 +1,8 @@
 import sys
 import re
 import argparse
-
-class Range():
-    def __init__(self, start, range):
-        self.start = start
-        self.stop = start + range
-
-    @property 
-    def start(self):
-        return self._start
-
-    @start.setter 
-    def start(self, start):
-        self._start = start
-
-    @property 
-    def stop(self):
-        return self._stop
-
-    @stop.setter 
-    def stop(self, stop):
-        self._stop = stop
-
-    def __contains__(self, value):
-        retval = False
-        if value in range(self.start, self.stop):
-            retval = True
-        return retval
-
-    def overlaps(self, other_range):
-        retval = False
-        if (self.start < other_range.stop and other_range.start < self.stop): 
-            retval = True
-        return retval
-
-    def completely_contains(self, range):
-        retval = False
-        if (self.start <= range.start < self.stop and
-            self.start <= range.stop < self.stop):
-            retval = True
-        return retval
-
-    def __str__(self):
-        retval = []
-        retval.append(f'start: {self.start} stop: {self.stop}')
-        return '\n'.join(retval)
-
-
-class RangeMapping():
-    def __init__(self, destination, source, range):
-        self.destination = Range(destination, range)
-        self.source = Range(source, range)
-
-    @property 
-    def source(self):
-        return self._source
-
-    @source.setter 
-    def source(self, source):
-        self._source = source
-
-    @property 
-    def destination(self):
-        return self._destination
-
-    @destination.setter 
-    def destination(self, destination):
-        self._destination = destination
-
-    def __str__(self):
-        retval = []
-        retval.append(f'source {self.source}')
-        retval.append(f'destination {self.destination}')
-        return '\n'.join(retval)
-
-
-class Map():
-    def __init__(self, source, destination):
-        self._mappings = []
-        self.source = source
-        self.destination = destination
-
-    def add_mapping(self, destination, source, mapping_range):
-        self._mappings.append(RangeMapping(destination, source, mapping_range))
-
-    def get_mapping(self, source):
-        retval = source
-        for mapping in self._mappings:
-            if source in mapping.source:
-                offset = source - mapping.source.start
-                retval = mapping.destination.start + offset
-        return retval
-
-    @property 
-    def source(self):
-        return self._source
-
-    @source.setter 
-    def source(self, source):
-        self._source = source
-
-    @property 
-    def destination(self):
-        return self._destination
-
-    @destination.setter 
-    def destination(self, destination):
-        self._destination = destination
-
-    def has_range_overlaps(self, debug = 0):
-        retval = False
-        for j in range(len(self._mappings) - 1):
-            for k in range(j+1, len(self._mappings)):
-                if self._mappings[j].source.overlaps(self._mappings[k].source):
-                    if debug:
-                        print(f'{self._mappings[j].source} overlaps '
-                              f'{self._mappings[k].source}')
-                    retval = True
-                    break
-        return retval
-
-    def __str__(self):
-        retval = []
-        retval.append(f'{self.source} {self.destination}')
-        retval.append(f'------ -----------')
-        for j in range(100):
-            retval.append(f'{j:^6} {self.get_mapping(j):^11}')
-        return '\n'.join(retval)
+from libs import Range
+from libs import Map
 
 
 class Almanac():
@@ -162,8 +37,8 @@ class Almanac():
                         self.seeds = []
                         seed_input = match.group(1).split(' ')
                         for j in range(int(len(seed_input)/2)):
-                            seed_range = Range(int(seed_input[j*2]), 
-                                               int(seed_input[j*2 + 1]))
+                            seed_range = Range.Range(int(seed_input[j*2]), 
+                                                     int(seed_input[j*2 + 1]))
                             self.seeds.append(seed_range)
 
                     # Parse the maps
@@ -171,7 +46,7 @@ class Almanac():
                     if match:
                         source = match.group(1)
                         destination = match.group(2)
-                        map = Map(source, destination)
+                        map = Map.Map(source, destination)
                         self._maps[source] = map
                         have_map = 1
                         if debug:
@@ -252,6 +127,14 @@ class Almanac():
     #         else:
     #             return value
 
+    def trial_fracture(self, debug=0):
+        source_maps = self.create_list_of_source_maps()
+        source_maps.reverse()
+        source_map = self._maps[source_maps[1]]
+        target_map = self._maps[source_maps[0]]
+        source_map.check_for_overlap(target_map)
+
+
     # def fracture_ranges(self, debug=0):
     #     source_maps = self.create_list_of_source_maps()
     #     source_maps.reverse()
@@ -319,11 +202,13 @@ def main():
     args = parse_commandline()
     almanac.read_almanac(args.puzzle)
     if args.debug:
-        almanac.print_map('seed')
+        # almanac.print_map('seed')
         # almanac.print_seeds()
-        # almanac.traverse_maps()
+        almanac.traverse_maps()
         # almanac.resolve_mapping()
-    #almanac.find_min_location()
+        almanac.trial_fracture(debug=0)
+
+    almanac.find_min_location()
  
 if __name__ == '__main__':
     main()
