@@ -1,7 +1,7 @@
 """
 Define a range mapping class
 """
-from libs import range
+from libs import Range
 
 class RangeMapping():
     """
